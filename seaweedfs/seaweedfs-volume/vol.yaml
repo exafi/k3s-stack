@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: movies
+spec:
+  accessModes:
+  - ReadWriteMany
+  capacity:
+    storage: 1Gi
+  csi:
+    driver: seaweedfs-csi-driver
+    volumeAttributes:
+      replication: "010"
+      diskType: hdd
+      collection: ""
+      path: /movies
+    volumeHandle: movies
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: dhdd
+  volumeMode: Filesystem

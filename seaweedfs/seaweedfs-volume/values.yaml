@@ -1,0 +1,21 @@
+# Default values for seaweedfs.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+env:
+  TZ: UTC
+
+image:
+  # -- image repository
+  repository: chrislusf/seaweedfs
+  # -- image tag
+  # @default -- chart.appVersion
+  tag: "2.98"
+  # -- image pull policy
+  pullPolicy: IfNotPresent
+
+storageClass: hdd
+weedmaster: weed-master:9333
+size: 10Gi
+
+volumes: 4

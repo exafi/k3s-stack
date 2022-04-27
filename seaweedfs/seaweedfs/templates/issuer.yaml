@@ -1,0 +1,24 @@
+
+{{- define "seaweedfs.issuer.name" -}}
+  {{- if .Values.filer.nameOverride -}}
+    {{- .Release.Name | trunc 43 | trimSuffix "-" -}}-{{- .Values.issuer.nameOverride | trunc 19 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- .Release.Name | trunc 43 | trimSuffix "-" -}}-issuer
+  {{- end -}}
+{{- end -}}
+
+{{- define "seaweedfs.issuer.hardcodedValues" -}}
+enabled: true
+
+nameOverride: local-ca
+{{- end -}}
+
+{{- $ctx := deepCopy . -}}
+{{- $_ := mustMergeOverwrite $ctx.Values (include "seaweedfs.issuer.hardcodedValues" . | fromYaml) -}}
+{{- if .Values.issuer -}}
+{{- $_ := mustMergeOverwrite $ctx.Values .Values.issuer -}}
+{{- end -}}
+
+{{- if $ctx.Values.enabled -}}
+{{- include "seaweedfs.classes.local-ca" $ctx -}}
+{{- end }}

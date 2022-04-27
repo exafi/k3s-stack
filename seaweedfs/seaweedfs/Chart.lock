@@ -1,0 +1,9 @@
+dependencies:
+- name: common
+  repository: https://library-charts.k8s-at-home.com
+  version: 4.3.0
+- name: redis
+  repository: https://charts.bitnami.com/bitnami
+  version: 16.8.5
+digest: sha256:5e4e8a3443c30a1761943d73fa4e59a0bd975ae7daad1e445204129ba2bd0732
+generated: "2022-04-15T17:19:34.044422-05:00"

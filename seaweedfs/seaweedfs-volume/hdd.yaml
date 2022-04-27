@@ -1,0 +1,126 @@
+---
+# Source: seaweedfs/templates/volume.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: seaweed-sc-hdd-seaweedfs
+  labels:
+    helm.sh/chart: seaweedfs-0.1.0
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: seaweed-sc-hdd
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+spec:
+  type: ClusterIP
+  clusterIP: None
+  
+  ports:
+  - port: 18080
+    targetPort: grpc
+    protocol: TCP
+    name: grpc
+  - port: 8080
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: seaweed-sc-hdd
+---
+# Source: seaweedfs/templates/volume.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: seaweed-sc-hdd-seaweedfs
+  labels:
+    helm.sh/chart: seaweedfs-0.1.0
+    app.kubernetes.io/name: seaweedfs
+    app.kubernetes.io/instance: seaweed-sc-hdd
+    app.kubernetes.io/version: "1.16.0"
+    app.kubernetes.io/managed-by: Helm
+spec:
+  revisionHistoryLimit: 3
+  replicas: 4
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: seaweedfs
+      app.kubernetes.io/instance: seaweed-sc-hdd
+  serviceName: seaweed-sc-hdd-seaweedfs
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: seaweedfs
+        app.kubernetes.io/instance: seaweed-sc-hdd
+    spec:
+      
+      serviceAccountName: default
+      automountServiceAccountToken: true
+      dnsPolicy: ClusterFirst
+      enableServiceLinks: true
+      containers:
+        - name: seaweed-sc-hdd-seaweedfs
+          image: "chrislusf/seaweedfs:2.98"
+          imagePullPolicy: IfNotPresent
+          command:
+              
+            - weed
+            - volume
+            - -compactionMBps=30
+            - -port=8080
+            - -port.grpc=18080
+            - -ip.bind=0.0.0.0
+            - -disk=hdd
+            - -dir=/data
+            - -mserver=weed-master:9333
+            - -rack=$(KUBERNETES_NODE_NAME)
+          env:
+            - name: "KUBERNETES_NODE_NAME"
+              name: KUBERNETES_NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          ports:
+            - name: grpc
+              containerPort: 18080
+              protocol: TCP
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /data
+              name: data
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 0
+            failureThreshold: 3
+            timeoutSeconds: 1
+            periodSeconds: 10
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 0
+            failureThreshold: 3
+            timeoutSeconds: 1
+            periodSeconds: 10
+          startupProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 0
+            failureThreshold: 30
+            timeoutSeconds: 1
+            periodSeconds: 5
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "10Gi"
+        storageClassName: "hdd"

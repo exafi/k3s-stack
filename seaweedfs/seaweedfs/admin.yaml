@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: "2022-04-21T02:21:33Z"
+  labels:
+    run: admin
+  name: admin
+  namespace: monitoring
+  resourceVersion: "496875"
+  uid: f0bca0a4-c243-44af-98d4-2adfde6e00f9
+spec:
+  containers:
+  - image: debian:11
+    imagePullPolicy: IfNotPresent
+    name: admin
+    resources: {}
+    securityContext:
+      privileged: true
+    stdin: true
+    stdinOnce: true
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    tty: true
+    volumeMounts:
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: kube-api-access-sh2lx
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: ninetails
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 0
+  hostPID: true
+  hostNetwork: true
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - name: kube-api-access-sh2lx
+    projected:
+      defaultMode: 420
+      sources:
+      - serviceAccountToken:
+          expirationSeconds: 3607
+          path: token
+      - configMap:
+          items:
+          - key: ca.crt
+            path: ca.crt
+          name: kube-root-ca.crt
+      - downwardAPI:
+          items:
+          - fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+            path: namespace
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2022-04-21T02:21:33Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2022-04-21T02:21:37Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2022-04-21T02:21:37Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2022-04-21T02:21:33Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: containerd://5f38c4ff4028560af14dd2ddf7884879aa48cc3feafc45a37b15e4a5f55ef4d0
+    image: docker.io/library/debian:11
+    imageID: docker.io/library/debian@sha256:6846593d7d8613e5dcc68c8f7d8b8e3179c7f3397b84a47c5b2ce989ef1075a0
+    lastState:
+      terminated:
+        containerID: containerd://9b921e471fd2efb18bf0764ee85f17cf0231c2ea7257f60a2004330453cd41d2
+        exitCode: 0
+        finishedAt: "2022-04-21T02:21:36Z"
+        reason: Completed
+        startedAt: "2022-04-21T02:21:34Z"
+    name: admin
+    ready: true
+    restartCount: 1
+    started: true
+    state:
+      running:
+        startedAt: "2022-04-21T02:21:37Z"
+  hostIP: 192.168.1.105
+  phase: Running
+  podIP: 10.42.3.18
+  podIPs:
+  - ip: 10.42.3.18
+  qosClass: BestEffort
+  startTime: "2022-04-21T02:21:33Z"

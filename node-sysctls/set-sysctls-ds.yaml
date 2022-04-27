@@ -1,0 +1,49 @@
+---
+# https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: node-init
+  labels:
+    root-init.k8s.exa.fi/component-name: node-init
+spec:
+  selector:
+    matchLabels:
+      root-init.k8s.exa.fi/component-name: node-init
+  template:
+    metadata:
+      labels:
+        root-init.k8s.exa.fi/component-name: node-init
+    spec:
+      tolerations:
+      # this toleration is to have the daemonset runnable on master nodes
+      # remove it if your masters can't run pods
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      initContainers:
+      - name: init-node
+        image: alpine:3.7
+        command: ["sh", "-c"]
+        args:
+        - |-
+          cd /sysctl
+          for SYSCTL in *;do
+            nsenter --mount=/proc/1/ns/mnt -- sysctl "$SYSCTL"="$(cat $SYSCTL)"
+          done
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - mountPath: "/sysctl"
+          name: sysctl
+      containers:
+      - name: finished-sleep-forever
+        image: k8s.gcr.io/pause:3.1
+        securityContext:
+          privileged: false
+      terminationGracePeriodSeconds: 0
+      hostNetwork: true
+      hostPID: true
+      volumes:
+      - name: sysctl
+        configMap:
+          name: sysctl

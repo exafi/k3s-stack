@@ -1,0 +1,25 @@
+helmCharts:
+- name: haproxy-ingress
+  repo: https://haproxy-ingress.github.io/charts
+  version: v0.13.6
+  releaseName: haproxy-ingress
+  namespace: haproxy-ingress
+  includeCRDs: true
+  valuesInline:
+    controller:
+      hostNetwork: false
+    service:
+      type: LoadBalancer
+
+# don't need this after all...
+#            for now...
+#patches:
+#- target:
+#    kind: Service
+#  patch: |-
+#    apiVersion: v1
+#    kind: Service
+#    metadata:
+#      name: haproxy-ingress
+#      annotations:
+#        metallb.universe.tf/address-pool: ingress

@@ -1,0 +1,16 @@
+# copy this file to local-config.sh
+#
+# you may safely commit this file to git in your fork once it is copied since
+# it can never cause a merge conflict as the file is gitignored.
+
+# nodes where k3s will run.
+SERVERS="192.168.1.11 192.168.1.12 192.168.1.13"
+NODES="192.168.1.101 192.168.1.102 192.168.1.103"
+
+#atomic pis are a little slow so olm fails to work on them properly.
+OLM_BAD_NODES="api1 api2 api3"
+
+K3S_DEFINITELY_INSTALL_OVER_EXISTING_CLUSTER="yes"
+K8S_VG_PREFIX="k8s-"
+DEFAULT_STORAGE_CLASS="hdd"
+K3S_VERSION="v1.23.5+k3s1"

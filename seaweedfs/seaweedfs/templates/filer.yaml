@@ -1,0 +1,88 @@
+{{- define "seaweedfs.filer.name" -}}
+  {{- if .Values.filer.nameOverride -}}
+    {{- .Release.Name | trunc 43 | trimSuffix "-" -}}-{{- .Values.filer.nameOverride | trunc 19 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- .Release.Name | trunc 43 | trimSuffix "-" -}}-filer
+  {{- end -}}
+{{- end -}}
+{{/* Append the hardcoded settings */}}
+{{- define "seaweedfs.filer.hardcodedValues" -}}
+controller:
+  type: deployment
+  replicas: 2
+
+command:
+  - weed
+  - filer
+  - "-master={{ if .Values.filer.master -}}
+               {{- .Values.filer.master -}}
+             {{- else -}}
+               {{- .Release.Name }}-master:9333
+             {{- end }}"
+  - "-rack=$(KUBERNETES_NODE_NAME)"
+  - "-ip.bind=0.0.0.0"
+  - "-port=8888"
+  - "-port.grpc=18888"
+  - "-metricsPort=9327"
+  - "-dirListLimit=100000"
+  - "-defaultReplicaPlacement=010"
+  - "-s3"
+  - "-s3.port=8333"
+  - "-webdav"
+  - "-webdav.port=7333"
+env:
+  - name: WEED_REDIS_ADDRESS
+    value: {{ .Release.Name }}-redis-master:6379
+  - name: WEED_REDIS_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: {{ .Release.Name }}-redis
+        key: redis-password
+  - name: WEED_REDIS_ENABLED
+    value: true
+  - name: WEED_LEVELDB2_ENABLED
+    value: false
+  - name: KUBERNETES_NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        topologyKey: kubernetes.io/hostname
+
+# -- Configures service settings for the chart.
+# @default -- See values.yaml
+service:
+  main:
+    type: ClusterIP
+    clusterIP: None
+    ports:
+      http:
+        port: 8888
+        protocol: TCP
+        enabled: true
+      s3:
+        port: 8333
+        enabled: true
+      grpc:
+        port: 18888
+        protocol: TCP
+        enabled: true
+      webdav:
+        port: 7333
+        protocol: TCP
+        enabled: true
+
+nameOverride: filer
+{{- end -}}
+
+{{- $ctx := deepCopy . -}}
+{{- $_ := mustMergeOverwrite $ctx.Values (include "seaweedfs.filer.hardcodedValues" . | fromYaml) -}}
+{{- $_ := mustMergeOverwrite $ctx.Values .Values.filer -}}
+
+{{- if $ctx.Values.enabled -}}
+{{- include "common.all" $ctx -}}
+{{- end }}

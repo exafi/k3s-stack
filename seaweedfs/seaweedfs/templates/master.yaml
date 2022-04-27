@@ -1,0 +1,44 @@
+{{- define "seaweedfs.master.name" -}}
+  {{- if .Values.master.nameOverride -}}
+    {{- .Release.Name | trunc 43 | trimSuffix "-" -}}-{{- .Values.master.nameOverride | trunc 19 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- .Release.Name | trunc 43 | trimSuffix "-" -}}-master
+  {{- end -}}
+{{- end -}}
+{{/* Append the hardcoded settings */}}
+{{- define "seaweedfs.master.hardcodedValues" -}}
+controller:
+  type: statefulset
+
+command:
+  - weed
+  - master
+  - "-mdir=/data"
+  - "-ip={{ include "seaweedfs.master.name" .}}"
+  - "-ip.bind=0.0.0.0"
+env:
+  WEED_LEVELDB2_ENABLED: "true"
+
+service:
+  main:
+    ports:
+      http:
+        port: 9333
+        protocol: TCP
+        enabled: true
+      grpc:
+        port: 19333
+        protocol: TCP
+        enabled: true
+
+nameOverride: master
+{{- end -}}
+
+
+{{- $ctx := deepCopy . -}}
+{{- $_ := mustMergeOverwrite $ctx.Values .Values.master -}}
+{{- $_ := mustMergeOverwrite $ctx.Values (include "seaweedfs.master.hardcodedValues" . | fromYaml) -}}
+
+{{- if $ctx.Values.enabled -}}
+{{- include "common.all" $ctx -}}
+{{- end }}

@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- set-sysctls-ds.yaml
+configMapGenerator:
+- name: sysctl
+  literals:
+  - fs.inotify.max_user_instances=511
+  - fs.inotify.max_user_watches=524288

@@ -1,0 +1,9 @@
+operator-sdk 1.19.1
+kubectl 1.23.6
+terraform 1.1.9
+kubectx 0.9.4
+cmctl 1.8.0
+helm 3.8.2
+k3sup 0.11.3
+krew 0.4.3
+kustomize 4.5.4

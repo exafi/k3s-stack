@@ -1,0 +1,64 @@
+{{- define "seaweedfs.volume.name" -}}
+  {{- if .Values.nameOverride -}}
+    {{- .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+  {{- end -}}
+{{- end -}}
+{{/* Append the hardcoded settings */}}
+{{- define "seaweedfs.volume.hardcodedValues" -}}
+controller:
+  type: statefulset
+  replicas: {{ .Values.volumes }}
+
+command:
+  - weed
+  - volume
+  - "-compactionMBps=30"
+  - "-port=8080"
+  - "-port.grpc=18080"
+  - "-ip.bind=0.0.0.0"
+  - "-disk={{ .Values.storageClass }}"
+  - "-dir=/data"
+  - "-mserver={{ .Values.weedmaster }}"
+  - "-rack=$(KUBERNETES_NODE_NAME)"
+env:
+  - name: KUBERNETES_NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+
+service:
+  main:
+    type: ClusterIP
+    clusterIP: None
+    ports:
+      http:
+        port: 8080
+        protocol: TCP
+        enabled: true
+      grpc:
+        port: 18080
+        protocol: TCP
+        enabled: true
+
+volumeClaimTemplates:
+  - name: data
+    enabled: "true"
+    type: pvc
+    accessMode: ReadWriteOnce
+    storageClass: {{ .Values.storageClass }}
+    mountPath: /data
+    name: data
+    retain: true
+    size: {{ .Values.size }}
+
+enabled: true
+{{- end -}}
+
+{{- $ctx := deepCopy . -}}
+{{- $_ := mustMergeOverwrite $ctx.Values (include "seaweedfs.volume.hardcodedValues" . | fromYaml) -}}
+
+{{- if $ctx.Values.enabled -}}
+{{- include "common.all" $ctx -}}
+{{- end }}

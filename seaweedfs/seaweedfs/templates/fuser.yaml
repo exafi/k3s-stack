@@ -1,0 +1,56 @@
+{{- define "seaweedfs.fuser.name" -}}
+  {{- if .Values.fuser.nameOverride -}}
+    {{- .Release.Name | trunc 43 | trimSuffix "-" -}}-{{- .Values.fuser.nameOverride | trunc 19 | trimSuffix "-" -}}
+  {{- else -}}
+    {{- .Release.Name | trunc 43 | trimSuffix "-" -}}-fuser
+  {{- end -}}
+{{- end -}}
+{{/* Append the hardcoded settings */}}
+{{- define "seaweedfs.fuser.hardcodedValues" -}}
+controller:
+  type: daemonset
+
+command:
+  - weed
+  - mount
+  - "-filer"
+  - "{{ include "seaweedfs.filer.name" . }}:8888"
+  - "-disk"
+  - "hdd"
+  - "-replication"
+  - "000"
+  - "-dir"
+  - "/srv/weed"
+  - "-dirAutoCreate"
+env:
+  - name: KUBERNETES_NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+
+service:
+  main:
+    enabled: false
+
+persistence:
+  weed:
+    enabled: true
+    type: hostPath
+    hostPath: /srv
+    mountPath: /srv
+    hostPathType: DirectoryOrCreate
+    mountPropagation: Bidirectional
+
+securityContext:
+  privileged: true
+
+nameOverride: fuser
+{{- end -}}
+
+{{- $ctx := deepCopy . -}}
+{{- $_ := mustMergeOverwrite $ctx.Values (include "seaweedfs.fuser.hardcodedValues" . | fromYaml) -}}
+{{- $_ := mustMergeOverwrite $ctx.Values .Values.fuser -}}
+
+{{- if $ctx.Values.enabled -}}
+{{- include "common.all" $ctx -}}
+{{- end }}

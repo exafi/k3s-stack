@@ -1,0 +1,12 @@
+jiva:
+  enabled: false
+lvm-localpv:
+  enabled: true
+localprovisioner:
+  enabled: false
+legacy:
+  enabled: false
+ndm:
+  enabled: false
+localpv-provisioner:
+  enabled: true

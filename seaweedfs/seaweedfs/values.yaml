@@ -1,0 +1,54 @@
+# Default values for seaweedfs.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+env:
+  TZ: UTC
+
+image:
+  # -- image repository
+  repository: chrislusf/seaweedfs
+  # -- image tag
+  # @default -- chart.appVersion
+  tag: "2.98"
+  # -- image pull policy
+  pullPolicy: IfNotPresent
+
+volumeClaimTemplates: 
+  data:
+    enabled: "true"
+    type: pvc
+    accessMode: ReadWriteOnce
+    mountPath: /data
+    name: data
+    retain: true
+    size: 1Gi
+
+redis:
+  enabled: true
+  replica:
+    replicaCount: 1
+  global:
+    size: 10Gi
+    storageClass: ssd
+
+filer:
+  enabled: true
+  ingress:
+    main:
+      enabled: false
+  volumeClaimTemplates: null
+
+fuser:
+  enabled: true
+  volumeClaimTemplates: null
+
+master:
+  enabled: true
+  volumeClaimTemplates: 
+    data:
+      size: 1Gi
+      storageClass: hdd
+
+issuer:
+  enabled: true
